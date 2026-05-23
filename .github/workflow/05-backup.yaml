@@ -1,0 +1,154 @@
+# AnimeMultiFlix - Backup Workflow
+# Version: 4.0.0 (2026)
+
+name: Database Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+    - cron: '0 14 * * *'  # Also at 2 PM
+  workflow_dispatch:
+
+jobs:
+  # ==================== MONGODB BACKUP ====================
+  mongodb-backup:
+    name: MongoDB Backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Install MongoDB Tools
+        run: |
+          wget -qO - https://www.mongodb.org/static/pgp/server-7.0.asc | sudo apt-key add -
+          echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+          sudo apt-get update
+          sudo apt-get install -y mongodb-database-tools
+      
+      - name: Backup MongoDB
+        run: |
+          BACKUP_NAME="mongodb-backup-$(date +'%Y%m%d-%H%M%S')"
+          mongodump --uri="${{ secrets.MONGODB_URI }}" --out="./$BACKUP_NAME"
+          tar -czf "$BACKUP_NAME.tar.gz" "$BACKUP_NAME"
+          aws s3 cp "$BACKUP_NAME.tar.gz" s3://${{ secrets.BACKUP_BUCKET }}/mongodb/
+          aws s3 cp "$BACKUP_NAME.tar.gz" s3://${{ secrets.BACKUP_BUCKET }}/mongodb/latest.tar.gz
+      
+      - name: Cleanup Old Backups (Keep 30 days)
+        run: |
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/mongodb/ | while read -r line; do
+            createDate=`echo $line|awk {'print $1" "$2'}`
+            createDate=`date -d"$createDate" +%s`
+            olderThan=`date -d"30 days ago" +%s`
+            if [[ $createDate -lt $olderThan ]]; then
+              fileName=`echo $line|awk {'print $4'}`
+              if [[ $fileName != "" ]]; then
+                aws s3 rm s3://${{ secrets.BACKUP_BUCKET }}/mongodb/$fileName
+              fi
+            fi
+          done
+
+  # ==================== POSTGRESQL BACKUP ====================
+  postgres-backup:
+    name: PostgreSQL Backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Backup PostgreSQL
+        run: |
+          BACKUP_NAME="postgres-backup-$(date +'%Y%m%d-%H%M%S')"
+          PGPASSWORD="${{ secrets.PG_PASSWORD }}" pg_dump -h ${{ secrets.PG_HOST }} -U ${{ secrets.PG_USER }} -d ${{ secrets.PG_DATABASE }} -F c -f "$BACKUP_NAME.dump"
+          gzip "$BACKUP_NAME.dump"
+          aws s3 cp "$BACKUP_NAME.dump.gz" s3://${{ secrets.BACKUP_BUCKET }}/postgres/
+          aws s3 cp "$BACKUP_NAME.dump.gz" s3://${{ secrets.BACKUP_BUCKET }}/postgres/latest.dump.gz
+
+  # ==================== REDIS BACKUP ====================
+  redis-backup:
+    name: Redis Backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Backup Redis
+        run: |
+          BACKUP_NAME="redis-backup-$(date +'%Y%m%d-%H%M%S')"
+          redis-cli -h ${{ secrets.REDIS_HOST }} -p ${{ secrets.REDIS_PORT }} -a ${{ secrets.REDIS_PASSWORD }} SAVE
+          redis-cli -h ${{ secrets.REDIS_HOST }} -p ${{ secrets.REDIS_PORT }} -a ${{ secrets.REDIS_PASSWORD }} --rdb dump.rdb
+          aws s3 cp dump.rdb s3://${{ secrets.BACKUP_BUCKET }}/redis/$BACKUP_NAME.rdb
+          aws s3 cp dump.rdb s3://${{ secrets.BACKUP_BUCKET }}/redis/latest.rdb
+
+  # ==================== S3 BUCKET BACKUP ====================
+  s3-backup:
+    name: S3 Bucket Backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Backup S3 Buckets
+        run: |
+          BACKUP_NAME="s3-backup-$(date +'%Y%m%d-%H%M%S')"
+          aws s3 sync s3://${{ secrets.UPLOADS_BUCKET }} s3://${{ secrets.BACKUP_BUCKET }}/uploads/$BACKUP_NAME/
+          aws s3 sync s3://${{ secrets.UPLOADS_BUCKET }} s3://${{ secrets.BACKUP_BUCKET }}/uploads/latest/
+
+  # ==================== VERIFY BACKUPS ====================
+  verify-backups:
+    name: Verify Backups
+    runs-on: ubuntu-latest
+    needs: [mongodb-backup, postgres-backup, redis-backup, s3-backup]
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Verify Backup Files
+        run: |
+          echo "Verifying backups..."
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/mongodb/latest.tar.gz
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/postgres/latest.dump.gz
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/redis/latest.rdb
+          aws s3 ls s3://${{ secrets.BACKUP_BUCKET }}/uploads/latest/
+          echo "All backups verified successfully!"
+      
+      - name: Send Backup Notification
+        uses: slackapi/slack-github-action@v1.24
+        with:
+          payload: |
+            {
+              "text": "✅ Backup completed successfully for AnimeMultiFlix\nDate: $(date)\nMongoDB: ${{ steps.mongodb.outputs.size }}\nPostgreSQL: ${{ steps.postgres.outputs.size }}\nRedis: ${{ steps.redis.outputs.size }}\nS3: ${{ steps.s3.outputs.size }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BACKUP_WEBHOOK }}
