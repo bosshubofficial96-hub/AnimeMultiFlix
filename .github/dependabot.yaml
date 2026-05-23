@@ -1,0 +1,561 @@
+# AnimeMultiFlix Dependabot Configuration
+# Version: 4.0.0 (2026)
+# Powered by BossHub
+# This file automates dependency updates for security and performance
+
+version: 2
+registries:
+  npm-github:
+    type: npm-registry
+    url: https://npm.pkg.github.com
+    token: ${{ secrets.GITHUB_TOKEN }}
+  maven-github:
+    type: maven-repository
+    url: https://maven.pkg.github.com
+    token: ${{ secrets.GITHUB_TOKEN }}
+  python-github:
+    type: python-index
+    url: https://pypi.pkg.github.com
+    token: ${{ secrets.GITHUB_TOKEN }}
+
+updates:
+  # ============================================
+  # NODE.JS BACKEND DEPENDENCIES
+  # ============================================
+  - package-ecosystem: "npm"
+    directory: "/backend-node"
+    registries:
+      - npm-github
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    versioning-strategy: auto
+    labels:
+      - "dependencies"
+      - "node"
+      - "backend"
+    commit-message:
+      prefix: "⬆️ deps(node)"
+      prefix-development: "⬆️ dev-deps(node)"
+      include: "scope"
+    open-pull-requests-limit: 15
+    rebase-strategy: "auto"
+    reviewers:
+      - "@animemultiflix/node-team"
+      - "@animemultiflix/security-team"
+    assignees:
+      - "node-maintainer"
+    milestone: 2
+    
+    # Groups for related updates
+    groups:
+      typescript:
+        patterns:
+          - "@types/*"
+          - "typescript"
+          - "ts-node"
+          - "ts-jest"
+        exclude-patterns:
+          - "@types/node"
+        update-types:
+          - "minor"
+          - "patch"
+      express:
+        patterns:
+          - "express"
+          - "@types/express"
+          - "express-session"
+          - "express-rate-limit"
+      database:
+        patterns:
+          - "mongoose"
+          - "@types/mongoose"
+          - "mongodb"
+          - "redis"
+          - "@types/redis"
+      testing:
+        patterns:
+          - "jest"
+          - "@types/jest"
+          - "supertest"
+          - "@types/supertest"
+          - "nodemon"
+      security:
+        patterns:
+          - "helmet"
+          - "cors"
+          - "bcrypt"
+          - "jsonwebtoken"
+          - "express-validator"
+      logging:
+        patterns:
+          - "winston"
+          - "morgan"
+          - "@types/morgan"
+    
+    # Ignore specific versions
+    ignore:
+      - dependency-name: "chokidar"
+        versions: [">=3.0.0"]
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "nodemon"
+        versions: [">=3.0.0"]
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "mongoose"
+        versions: ["<6.0.0"]
+    
+    # Security updates only
+    allow:
+      - dependency-type: "all"
+    
+    # Insecure dependencies to reject
+    reject:
+      - dependency-name: "lodash"
+        versions: ["<4.17.21"]
+      - dependency-name: "axios"
+        versions: ["<1.6.0"]
+      - dependency-name: "express"
+        versions: ["<4.18.0"]
+
+  # ============================================
+  # PYTHON BACKEND DEPENDENCIES
+  # ============================================
+  - package-ecosystem: "pip"
+    directory: "/backend-python"
+    registries:
+      - python-github
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "python"
+      - "backend"
+    commit-message:
+      prefix: "⬆️ deps(python)"
+      prefix-development: "⬆️ dev-deps(python)"
+    open-pull-requests-limit: 15
+    reviewers:
+      - "@animemultiflix/python-team"
+      - "@animemultiflix/ml-team"
+    assignees:
+      - "python-maintainer"
+    
+    groups:
+      web-framework:
+        patterns:
+          - "flask*"
+          - "werkzeug"
+          - "jinja2"
+          - "click"
+      ai-ml:
+        patterns:
+          - "tensorflow*"
+          - "torch*"
+          - "scikit-learn*"
+          - "pandas"
+          - "numpy"
+          - "transformers"
+          - "huggingface-hub"
+      database:
+        patterns:
+          - "pymongo"
+          - "psycopg2*"
+          - "redis*"
+          - "sqlalchemy"
+      testing:
+        patterns:
+          - "pytest*"
+          - "coverage*"
+          - "tox*"
+          - "black"
+          - "flake8"
+          - "mypy"
+      security:
+        patterns:
+          - "pyjwt"
+          - "passlib"
+          - "bcrypt"
+          - "cryptography"
+      voice:
+        patterns:
+          - "webrtcvad"
+          - "pyaudio"
+          - "sounddevice"
+          - "speechrecognition"
+    
+    ignore:
+      - dependency-name: "numpy"
+        versions: ["<1.24.0"]
+      - dependency-name: "tensorflow"
+        versions: ["<2.13.0"]
+      - dependency-name: "torch"
+        versions: ["<2.0.0"]
+
+  # ============================================
+  # GO BACKEND DEPENDENCIES
+  # ============================================
+  - package-ecosystem: "gomod"
+    directory: "/backend-go"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "go"
+      - "backend"
+    commit-message:
+      prefix: "⬆️ deps(go)"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@animemultiflix/go-team"
+      - "@animemultiflix/performance-team"
+    assignees:
+      - "go-maintainer"
+    
+    groups:
+      web-framework:
+        patterns:
+          - "github.com/gin-gonic/*"
+          - "github.com/labstack/echo/*"
+          - "github.com/gofiber/*"
+      database:
+        patterns:
+          - "go.mongodb.org/mongo-driver"
+          - "github.com/go-redis/redis/*"
+          - "github.com/lib/pq"
+      webrtc:
+        patterns:
+          - "github.com/pion/webrtc/*"
+          - "github.com/pion/ice/*"
+      security:
+        patterns:
+          - "golang.org/x/crypto"
+          - "github.com/golang-jwt/jwt"
+    
+    ignore:
+      - dependency-name: "golang.org/x/crypto"
+        versions: ["<0.14.0"]
+
+  # ============================================
+  # RUST BACKEND DEPENDENCIES
+  # ============================================
+  - package-ecosystem: "cargo"
+    directory: "/backend-rust"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "rust"
+      - "backend"
+    commit-message:
+      prefix: "⬆️ deps(rust)"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@animemultiflix/rust-team"
+      - "@animemultiflix/performance-team"
+    assignees:
+      - "rust-maintainer"
+    
+    groups:
+      web-framework:
+        patterns:
+          - "actix-*"
+          - "axum"
+          - "warp"
+          - "tower-*"
+      database:
+        patterns:
+          - "mongodb"
+          - "redis"
+          - "sqlx"
+      webrtc:
+        patterns:
+          - "webrtc-*"
+          - "libwebrtc"
+      async:
+        patterns:
+          - "tokio"
+          - "async-std"
+          - "futures"
+    
+    ignore:
+      - dependency-name: "tokio"
+        versions: ["<1.30.0"]
+
+  # ============================================
+  # FRONTEND DEPENDENCIES
+  # ============================================
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "daily"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    versioning-strategy: auto
+    labels:
+      - "dependencies"
+      - "frontend"
+    commit-message:
+      prefix: "⬆️ deps(frontend)"
+      prefix-development: "⬆️ dev-deps(frontend)"
+    open-pull-requests-limit: 20
+    rebase-strategy: "auto"
+    reviewers:
+      - "@animemultiflix/frontend-team"
+      - "@animemultiflix/ui-team"
+    assignees:
+      - "frontend-maintainer"
+    
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          - "react-router-dom"
+      ui:
+        patterns:
+          - "tailwindcss"
+          - "framer-motion"
+          - "clsx"
+          - "class-variance-authority"
+      video-player:
+        patterns:
+          - "video.js"
+          - "hls.js"
+          - "dashjs"
+          - "plyr"
+      webrtc:
+        patterns:
+          - "simple-peer"
+          - "socket.io-client"
+          - "@types/socket.io-client"
+      testing:
+        patterns:
+          - "vitest"
+          - "playwright"
+          - "@testing-library/react"
+      build-tools:
+        patterns:
+          - "vite"
+          - "webpack"
+          - "rollup"
+          - "esbuild"
+    
+    ignore:
+      - dependency-name: "video.js"
+        versions: [">=8.0.0"]
+      - dependency-name: "socket.io-client"
+        versions: ["<4.0.0"]
+
+  # ============================================
+  # MOBILE DEPENDENCIES
+  # ============================================
+  - package-ecosystem: "npm"
+    directory: "/mobile"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "mobile"
+    commit-message:
+      prefix: "⬆️ deps(mobile)"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@animemultiflix/mobile-team"
+      - "@animemultiflix/android-team"
+      - "@animemultiflix/ios-team"
+    assignees:
+      - "mobile-maintainer"
+    
+    groups:
+      react-native:
+        patterns:
+          - "react-native"
+          - "@react-navigation/*"
+          - "react-native-*"
+      state-management:
+        patterns:
+          - "redux"
+          - "@reduxjs/toolkit"
+          - "zustand"
+          - "jotai"
+    
+    ignore:
+      - dependency-name: "react-native"
+        versions: ["<0.72.0"]
+
+  # ============================================
+  # ANDROID DEPENDENCIES (Gradle)
+  # ============================================
+  - package-ecosystem: "gradle"
+    directory: "/mobile/android"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "android"
+      - "kotlin"
+    commit-message:
+      prefix: "⬆️ deps(android)"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@animemultiflix/android-team"
+    assignees:
+      - "android-maintainer"
+    
+    groups:
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+      compose:
+        patterns:
+          - "androidx.compose*"
+      lifecycle:
+        patterns:
+          - "androidx.lifecycle*"
+      network:
+        patterns:
+          - "com.squareup.okhttp3*"
+          - "com.squareup.retrofit2*"
+
+  # ============================================
+  # IOS DEPENDENCIES (CocoaPods)
+  # ============================================
+  - package-ecosystem: "cocoapods"
+    directory: "/mobile/ios"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "ios"
+      - "swift"
+    commit-message:
+      prefix: "⬆️ deps(ios)"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@animemultiflix/ios-team"
+    assignees:
+      - "ios-maintainer"
+    
+    groups:
+      networking:
+        patterns:
+          - "Alamofire"
+          - "Moya"
+      ui:
+        patterns:
+          - "SnapKit"
+          - "Then"
+          - "Kingfisher"
+      database:
+        patterns:
+          - "RealmSwift"
+          - "SQLite.swift"
+
+  # ============================================
+  # GITHUB ACTIONS
+  # ============================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    commit-message:
+      prefix: "⬆️ deps(gh-actions)"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@animemultiflix/devops-team"
+    assignees:
+      - "devops-maintainer"
+    
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ============================================
+  # DOCKER DEPENDENCIES
+  # ============================================
+  - package-ecosystem: "docker"
+    directory: "/docker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "⬆️ deps(docker)"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@animemultiflix/devops-team"
+    assignees:
+      - "devops-maintainer"
+    
+    ignore:
+      - dependency-name: "node"
+        versions: ["<20.x"]
+      - dependency-name: "python"
+        versions: ["<3.11"]
+      - dependency-name: "golang"
+        versions: ["<1.21"]
+      - dependency-name: "rust"
+        versions: ["<1.75"]
+
+  # ============================================
+  # TERRAFORM
+  # ============================================
+  - package-ecosystem: "terraform"
+    directory: "/terraform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    labels:
+      - "dependencies"
+      - "terraform"
+      - "infrastructure"
+    commit-message:
+      prefix: "⬆️ deps(terraform)"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "@animemultiflix/infra-team"
+    assignees:
+      - "infra-maintainer"
+    
+    groups:
+      aws:
+        patterns:
+          - "hashicorp/aws"
+      cloudflare:
+        patterns:
+          - "cloudflare/cloudflare"
