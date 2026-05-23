@@ -1,0 +1,110 @@
+# AnimeMultiFlix - Code Quality Workflow
+# Version: 4.0.0 (2026)
+
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    strategy:
+      matrix:
+        service: [node, python, go, rust, frontend]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Run ESLint
+        if: matrix.service == 'node' || matrix.service == 'frontend'
+        run: |
+          cd backend-${{ matrix.service == 'node' && 'node' || 'frontend' }}
+          npm ci
+          npm run lint
+          npm run lint:fix -- --dry-run
+      
+      - name: Run Prettier
+        if: matrix.service == 'node' || matrix.service == 'frontend'
+        run: |
+          cd backend-${{ matrix.service == 'node' && 'node' || 'frontend' }}
+          npm run format:check
+      
+      - name: Run TypeScript Type Check
+        if: matrix.service == 'node' || matrix.service == 'frontend'
+        run: |
+          cd backend-${{ matrix.service == 'node' && 'node' || 'frontend' }}
+          npm run type-check
+      
+      - name: Run Python Black
+        if: matrix.service == 'python'
+        run: |
+          cd backend-python
+          black --check --diff .
+      
+      - name: Run Python isort
+        if: matrix.service == 'python'
+        run: |
+          cd backend-python
+          isort --check-only --diff .
+      
+      - name: Run Python flake8
+        if: matrix.service == 'python'
+        run: |
+          cd backend-python
+          flake8 --count --statistics
+      
+      - name: Run Python mypy
+        if: matrix.service == 'python'
+        run: |
+          cd backend-python
+          mypy --strict .
+      
+      - name: Run Go fmt
+        if: matrix.service == 'go'
+        run: |
+          cd backend-go
+          go fmt ./...
+          test -z "$(go fmt ./...)"
+      
+      - name: Run Go vet
+        if: matrix.service == 'go'
+        run: |
+          cd backend-go
+          go vet ./...
+      
+      - name: Run Go lint
+        if: matrix.service == 'go'
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: backend-go
+      
+      - name: Run Rust fmt
+        if: matrix.service == 'rust'
+        run: |
+          cd backend-rust
+          cargo fmt -- --check
+      
+      - name: Run Rust clippy
+        if: matrix.service == 'rust'
+        run: |
+          cd backend-rust
+          cargo clippy -- -D warnings
+      
+      - name: Upload Quality Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-reports-${{ matrix.service }}
+          path: |
+            **/coverage/
+            **/lint-report/
+            **/test-results/
