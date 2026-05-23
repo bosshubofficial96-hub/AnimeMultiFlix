@@ -1,0 +1,101 @@
+# AnimeMultiFlix - Dependency Update Workflow
+# Version: 4.0.0 (2026)
+
+name: Dependency Update
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'  # Every Monday at 10 AM
+  workflow_dispatch:
+
+jobs:
+  update-deps:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        ecosystem: [node, python, go, rust, frontend, mobile]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        if: matrix.ecosystem == 'node' || matrix.ecosystem == 'frontend' || matrix.ecosystem == 'mobile'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      
+      - name: Setup Python
+        if: matrix.ecosystem == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Setup Go
+        if: matrix.ecosystem == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      - name: Setup Rust
+        if: matrix.ecosystem == 'rust'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: '1.75'
+      
+      - name: Update npm Dependencies
+        if: matrix.ecosystem == 'node' || matrix.ecosystem == 'frontend' || matrix.ecosystem == 'mobile'
+        run: |
+          cd backend-${{ matrix.ecosystem == 'node' && 'node' || matrix.ecosystem == 'frontend' && 'frontend' || 'mobile' }}
+          npx npm-check-updates -u
+          npm install
+          npm audit fix
+      
+      - name: Update Python Dependencies
+        if: matrix.ecosystem == 'python'
+        run: |
+          cd backend-python
+          pip install pip-upgrader
+          pip-upgrade requirements.txt
+          pip install -r requirements.txt --upgrade
+      
+      - name: Update Go Dependencies
+        if: matrix.ecosystem == 'go'
+        run: |
+          cd backend-go
+          go get -u ./...
+          go mod tidy
+      
+      - name: Update Rust Dependencies
+        if: matrix.ecosystem == 'rust'
+        run: |
+          cd backend-rust
+          cargo update
+      
+      - name: Run Tests After Update
+        run: |
+          npm run test
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(deps): update ${{ matrix.ecosystem }} dependencies"
+          title: "chore(deps): update ${{ matrix.ecosystem }} dependencies"
+          body: |
+            This PR updates dependencies for ${{ matrix.ecosystem }}.
+            
+            ## Changes
+            - Updated all dependencies to latest versions
+            - Ran tests to ensure compatibility
+            
+            ## Checklist
+            - [ ] Tests pass
+            - [ ] No breaking changes
+            - [ ] Performance impact assessed
+          branch: deps/update-${{ matrix.ecosystem }}
+          base: develop
+          labels: dependencies, automated-pr
