@@ -1,0 +1,151 @@
+# AnimeMultiFlix - Continuous Delivery Workflow
+# Version: 4.0.0 (2026)
+
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+  CLUSTER_NAME: animemultiflix-prod
+  SERVICE_NAME: animemultiflix
+
+jobs:
+  # ==================== BUILD AND PUSH ====================
+  build-and-push:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        service: [node, python, go, rust, nginx]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ env.ECR_REGISTRY }}/animemultiflix-${{ matrix.service }}:${{ github.sha }} -f docker/Dockerfile.${{ matrix.service }} backend-${{ matrix.service }}
+          docker tag ${{ env.ECR_REGISTRY }}/animemultiflix-${{ matrix.service }}:${{ github.sha }} ${{ env.ECR_REGISTRY }}/animemultiflix-${{ matrix.service }}:latest
+      
+      - name: Push Docker Image to ECR
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/animemultiflix-${{ matrix.service }}:${{ github.sha }}
+          docker push ${{ env.ECR_REGISTRY }}/animemultiflix-${{ matrix.service }}:latest
+
+  # ==================== DEPLOY TO ECS ====================
+  deploy-ecs:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: animemultiflix-node
+          image: ${{ env.ECR_REGISTRY }}/animemultiflix-node:${{ github.sha }}
+      
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.SERVICE_NAME }}
+          cluster: ${{ env.CLUSTER_NAME }}
+          wait-for-service-stability: true
+
+  # ==================== DEPLOY TO EKS ====================
+  deploy-eks:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+      
+      - name: Update Kubernetes Manifests
+        run: |
+          sed -i "s|IMAGE_TAG|${{ github.sha }}|g" kubernetes/overlays/production/deployment.yaml
+      
+      - name: Apply Kubernetes Manifests
+        run: |
+          kubectl apply -f kubernetes/overlays/production/
+          kubectl rollout status deployment/animemultiflix-node -n production --timeout=10m
+          kubectl rollout status deployment/animemultiflix-python -n production --timeout=10m
+          kubectl rollout status deployment/animemultiflix-go -n production --timeout=10m
+
+  # ==================== POST-DEPLOYMENT VERIFICATION ====================
+  verify-deployment:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-ecs, deploy-eks]
+    timeout-minutes: 10
+    
+    steps:
+      - name: Health Check
+        run: |
+          sleep 30
+          curl -f https://animemultiflix.me/health || exit 1
+          curl -f https://animemultiflix.me/api/v1/status || exit 1
+      
+      - name: Run Smoke Tests
+        run: |
+          cd tests/smoke
+          npm ci
+          npm run test:smoke
+      
+      - name: Send Deployment Notification
+        uses: slackapi/slack-github-action@v1.24
+        with:
+          payload: |
+            {
+              "text": "🚀 Deployment successful!\nEnvironment: Production\nVersion: ${{ github.sha }}\nServices: Node.js, Python, Go, Rust\nURL: https://animemultiflix.me\nDeployment Time: $(date)"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
