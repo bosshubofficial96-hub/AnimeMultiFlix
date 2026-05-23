@@ -1,0 +1,72 @@
+{
+  "app": {
+    "name": "AnimeMultiFlix",
+    "environment": "staging",
+    "debug": true,
+    "port": 3000,
+    "host": "0.0.0.0",
+    "apiUrl": "https://staging-api.animemultiflix.me/api",
+    "frontendUrl": "https://staging.animemultiflix.me",
+    "adminUrl": "https://staging-admin.animemultiflix.me",
+    "wsUrl": "wss://staging-ws.animemultiflix.me"
+  },
+  "database": {
+    "mongodb": {
+      "uri": "mongodb://localhost:27017/anime_multiflix_staging",
+      "poolSize": 10
+    },
+    "redis": {
+      "enabled": true,
+      "host": "localhost",
+      "port": 6379,
+      "db": 1,
+      "ttl": 1800
+    },
+    "postgresql": {
+      "enabled": true,
+      "host": "localhost",
+      "port": 5432,
+      "database": "anime_multiflix_staging"
+    }
+  },
+  "security": {
+    "ssl": true,
+    "rateLimit": {
+      "enabled": true,
+      "max": 200
+    },
+    "csrf": {
+      "enabled": true
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "console": true,
+    "file": true,
+    "path": "./logs/staging"
+  },
+  "cache": {
+    "type": "redis",
+    "ttl": 1800
+  },
+  "features": {
+    "voiceChat": true,
+    "watchParty": true,
+    "groups": true,
+    "premium": true,
+    "betaFeatures": true
+  },
+  "email": {
+    "enabled": true,
+    "backend": "smtp"
+  },
+  "payment": {
+    "enabled": true,
+    "testMode": true
+  },
+  "betaFeatures": [
+    "ai_recommendations_v2",
+    "voice_effects",
+    "custom_emojis"
+  ]
+}
