@@ -1,0 +1,323 @@
+# AnimeMultiFlix - Main Deploy Workflow
+# Version: 4.0.0 (2026)
+# Powered by BossHub
+
+name: Deploy AnimeMultiFlix
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'tests/**'
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+env:
+  NODE_VERSION: '20.x'
+  PYTHON_VERSION: '3.11'
+  GO_VERSION: '1.21'
+  RUST_VERSION: '1.75'
+
+jobs:
+  # ==================== BUILD & TEST ====================
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        service: [node, python, go, rust]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        if: matrix.service == 'node'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: backend-node/package-lock.json
+      
+      - name: Setup Python
+        if: matrix.service == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend-python/requirements.txt
+      
+      - name: Setup Go
+        if: matrix.service == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: backend-go/go.sum
+      
+      - name: Setup Rust
+        if: matrix.service == 'rust'
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
+      
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            **/target
+            **/__pycache__
+          key: ${{ runner.os }}-${{ matrix.service }}-${{ hashFiles('**/package-lock.json', '**/requirements.txt', '**/Cargo.lock', '**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.service }}-
+      
+      - name: Install Node Dependencies
+        if: matrix.service == 'node'
+        run: |
+          cd backend-node
+          npm ci
+      
+      - name: Install Python Dependencies
+        if: matrix.service == 'python'
+        run: |
+          cd backend-python
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Install Go Dependencies
+        if: matrix.service == 'go'
+        run: |
+          cd backend-go
+          go mod download
+          go mod verify
+      
+      - name: Install Rust Dependencies
+        if: matrix.service == 'rust'
+        run: |
+          cd backend-rust
+          cargo fetch
+      
+      - name: Run Linter
+        if: matrix.service == 'node'
+        run: |
+          cd backend-node
+          npm run lint
+      
+      - name: Run Type Check
+        if: matrix.service == 'node'
+        run: |
+          cd backend-node
+          npm run type-check
+      
+      - name: Run Tests
+        if: matrix.service == 'node'
+        run: |
+          cd backend-node
+          npm run test
+      
+      - name: Run Python Tests
+        if: matrix.service == 'python'
+        run: |
+          cd backend-python
+          pytest tests/ -v --cov=. --cov-report=xml
+      
+      - name: Run Go Tests
+        if: matrix.service == 'go'
+        run: |
+          cd backend-go
+          go test -v -race -coverprofile=coverage.out ./...
+      
+      - name: Run Rust Tests
+        if: matrix.service == 'rust'
+        run: |
+          cd backend-rust
+          cargo test --verbose
+      
+      - name: Upload Coverage Reports
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./backend-node/coverage/lcov.info,./backend-python/coverage.xml,./backend-go/coverage.out
+          flags: ${{ matrix.service }}
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  # ==================== BUILD DOCKER IMAGES ====================
+  build-docker:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        service: [node, python, go, rust, nginx]
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKER_USERNAME }}/animemultiflix-${{ matrix.service }}
+            ghcr.io/${{ github.repository_owner }}/animemultiflix-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend-${{ matrix.service }}
+          file: ./docker/Dockerfile.${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ==================== DEPLOY TO STAGING ====================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://staging.animemultiflix.me
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name animemultiflix-staging --region us-east-1
+      
+      - name: Apply Kubernetes Manifests
+        run: |
+          kubectl apply -f kubernetes/overlays/staging/
+          kubectl rollout status deployment/animemultiflix-node -n staging --timeout=5m
+          kubectl rollout status deployment/animemultiflix-python -n staging --timeout=5m
+      
+      - name: Verify Deployment
+        run: |
+          kubectl get pods -n staging
+          kubectl get svc -n staging
+          kubectl get ingress -n staging
+
+  # ==================== DEPLOY TO PRODUCTION ====================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://animemultiflix.me
+    concurrency: production
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure kubectl
+        uses: azure/setup-kubectl@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name animemultiflix-prod --region us-east-1
+      
+      - name: Apply Kubernetes Manifests
+        run: |
+          kubectl apply -f kubernetes/overlays/production/
+          kubectl rollout status deployment/animemultiflix-node -n production --timeout=10m
+          kubectl rollout status deployment/animemultiflix-python -n production --timeout=10m
+          kubectl rollout status deployment/animemultiflix-go -n production --timeout=10m
+      
+      - name: Verify Deployment
+        run: |
+          kubectl get pods -n production
+          kubectl get svc -n production
+          kubectl get ingress -n production
+      
+      - name: Health Check
+        run: |
+          sleep 30
+          curl -f https://animemultiflix.me/health || exit 1
+
+  # ==================== NOTIFICATION ====================
+  notify:
+    name: Send Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-production, deploy-staging]
+    if: always()
+    
+    steps:
+      - name: Send Slack Notification
+        uses: slackapi/slack-github-action@v1.24
+        with:
+          payload: |
+            {
+              "text": "AnimeMultiFlix Deployment Status: ${{ job.status }}\nEnvironment: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Workflow>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      
+      - name: Send Teams Notification
+        uses: rubin0/teams-notify@v1
+        with:
+          webhook_url: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          title: AnimeMultiFlix Deployment
+          message: |
+            Status: ${{ job.status }}
+            Environment: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
