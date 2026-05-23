@@ -1,0 +1,78 @@
+{
+  "app": {
+    "name": "AnimeMultiFlix",
+    "environment": "testing",
+    "debug": false,
+    "testing": true,
+    "port": 3001,
+    "host": "localhost",
+    "apiUrl": "http://localhost:3001/api",
+    "frontendUrl": "http://localhost:3001",
+    "adminUrl": "http://localhost:3001/admin",
+    "wsUrl": "ws://localhost:3002"
+  },
+  "database": {
+    "mongodb": {
+      "uri": "mongodb://localhost:27017/anime_multiflix_test",
+      "poolSize": 2
+    },
+    "redis": {
+      "enabled": false
+    },
+    "postgresql": {
+      "enabled": false
+    }
+  },
+  "security": {
+    "ssl": false,
+    "rateLimit": {
+      "enabled": false
+    },
+    "csrf": {
+      "enabled": false
+    },
+    "cors": {
+      "origins": ["*"]
+    }
+  },
+  "logging": {
+    "level": "ERROR",
+    "console": false,
+    "file": false
+  },
+  "cache": {
+    "type": "simple",
+    "ttl": 60
+  },
+  "features": {
+    "voiceChat": true,
+    "watchParty": true,
+    "groups": true,
+    "premium": true
+  },
+  "email": {
+    "enabled": false,
+    "backend": "console"
+  },
+  "payment": {
+    "enabled": false,
+    "testMode": true,
+    "mockPayments": true
+  },
+  "mockServices": {
+    "externalApis": true,
+    "mlServices": true,
+    "recommendations": true,
+    "translations": true
+  },
+  "testData": {
+    "userEmail": "test@example.com",
+    "userPassword": "Test@123456",
+    "adminEmail": "admin@example.com",
+    "adminPassword": "Admin@123456"
+  },
+  "coverage": {
+    "required": 80,
+    "reportPath": "./coverage"
+  }
+}
