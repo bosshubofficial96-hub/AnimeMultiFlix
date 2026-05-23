@@ -1,0 +1,608 @@
+# AnimeMultiFlix Code Owners Configuration
+# Version: 4.0.0 (2026)
+# Powered by BossHub
+# This file defines who owns which parts of the repository
+# Format: @username OR @org/team-name
+# Patterns are matched in order, last matching pattern takes precedence
+
+# ============================================
+# GLOBAL OWNERS - Fallback for all files
+# ============================================
+* @animemultiflix/security-team @animemultiflix/architecture-team @animemultiflix/tech-leads
+
+# ============================================
+# ROOT DIRECTORY FILES
+# ============================================
+/.env*                          @animemultiflix/security-team @animemultiflix/devops-team
+/.gitignore                     @animemultiflix/devops-team
+/.dockerignore                  @animemultiflix/devops-team
+/package.json                   @animemultiflix/backend-team
+/package-lock.json              @animemultiflix/backend-team
+/tsconfig.json                  @animemultiflix/backend-team
+/tsconfig.*.json                @animemultiflix/backend-team
+/README.md                      @animemultiflix/docs-team
+/README_*.md                    @animemultiflix/docs-team
+/LICENSE                        @animemultiflix/legal-team
+/docker-compose.yml             @animemultiflix/devops-team
+/docker-compose.*.yml           @animemultiflix/devops-team
+/Makefile                       @animemultiflix/devops-team
+/justfile                       @animemultiflix/devops-team
+/taskfile.yml                   @animemultiflix/devops-team
+/nx.json                        @animemultiflix/backend-team
+/turbo.json                     @animemultiflix/backend-team
+/lerna.json                     @animemultiflix/backend-team
+/commitlint.config.js           @animemultiflix/devops-team
+/husky.config.js                @animemultiflix/devops-team
+/lint-staged.config.js          @animemultiflix/devops-team
+/jest.config.js                 @animemultiflix/qa-team
+/jest.setup.js                  @animemultiflix/qa-team
+/playwright.config.ts           @animemultiflix/qa-team
+/cypress.config.ts              @animemultiflix/qa-team
+/webpack.config.js              @animemultiflix/frontend-team
+/webpack.prod.js                @animemultiflix/frontend-team
+/rollup.config.js               @animemultiflix/frontend-team
+/vite.config.ts                 @animemultiflix/frontend-team
+/next.config.js                 @animemultiflix/frontend-team
+/nuxt.config.ts                 @animemultiflix/frontend-team
+
+# ============================================
+# CONFIGURATION FILES
+# ============================================
+/config/                        @animemultiflix/backend-team @animemultiflix/security-team
+/config/*.ts                    @animemultiflix/backend-team
+/config/*.js                    @animemultiflix/backend-team
+/config/index.ts                @animemultiflix/backend-team
+/config/config.ts               @animemultiflix/backend-team
+/config/database.ts             @animemultiflix/database-team
+/config/auth.config.ts          @animemultiflix/security-team
+/config/group.config.ts         @animemultiflix/backend-team
+/config/chat.config.ts          @animemultiflix/backend-team
+/config/voice.config.ts         @animemultiflix/webrtc-team
+/config/payment.config.ts       @animemultiflix/payment-team
+/config/premium.config.ts       @animemultiflix/payment-team
+/config/streaming.config.ts     @animemultiflix/backend-team
+/config/admin.config.ts         @animemultiflix/admin-team
+/config/api.config.ts           @animemultiflix/backend-team
+/config/security.config.ts      @animemultiflix/security-team
+/config/constants.ts            @animemultiflix/backend-team
+/config/config.example.ts       @animemultiflix/backend-team
+/config/environments/           @animemultiflix/devops-team
+/config/environments/*.json     @animemultiflix/devops-team
+
+# ============================================
+# BACKEND - NODE.JS (TypeScript)
+# ============================================
+/backend-node/                  @animemultiflix/node-team
+/backend-node/src/              @animemultiflix/node-team
+/backend-node/src/server.ts     @animemultiflix/node-team @animemultiflix/devops-team
+/backend-node/src/app.ts        @animemultiflix/node-team
+
+# Auth Module - Security Critical
+/backend-node/src/modules/auth/ @animemultiflix/security-team @animemultiflix/node-team
+/backend-node/src/modules/auth/*.controller.ts @animemultiflix/security-team
+/backend-node/src/modules/auth/*.service.ts @animemultiflix/security-team
+/backend-node/src/modules/auth/strategies/ @animemultiflix/security-team
+
+# Users Module
+/backend-node/src/modules/users/@animemultiflix/node-team
+/backend-node/src/modules/users/*.controller.ts @animemultiflix/node-team
+/backend-node/src/modules/users/*.service.ts @animemultiflix/node-team
+
+# Groups Module
+/backend-node/src/modules/groups/@animemultiflix/node-team
+/backend-node/src/modules/groups/*.controller.ts @animemultiflix/node-team
+
+# Chat Module
+/backend-node/src/modules/chat/ @animemultiflix/node-team
+/backend-node/src/modules/chat/*.controller.ts @animemultiflix/node-team
+
+# Voice Module - WebRTC Critical
+/backend-node/src/modules/voice/@animemultiflix/webrtc-team @animemultiflix/node-team
+/backend-node/src/modules/voice/webrtc.service.ts @animemultiflix/webrtc-team
+
+# Anime Module - Content
+/backend-node/src/modules/anime/@animemultiflix/content-team @animemultiflix/node-team
+/backend-node/src/modules/anime/*.controller.ts @animemultiflix/content-team
+
+# Streaming Module
+/backend-node/src/modules/streaming/@animemultiflix/performance-team @animemultiflix/node-team
+/backend-node/src/modules/streaming/hls.service.ts @animemultiflix/performance-team
+/backend-node/src/modules/streaming/dash.service.ts @animemultiflix/performance-team
+
+# Payment Module - Financial Critical
+/backend-node/src/modules/payment/@animemultiflix/payment-team @animemultiflix/security-team
+/backend-node/src/modules/payment/gateways/ @animemultiflix/payment-team
+
+# Admin Module
+/backend-node/src/modules/admin/@animemultiflix/admin-team @animemultiflix/security-team
+
+# Notification Module
+/backend-node/src/modules/notification/@animemultiflix/backend-team
+
+# Social Module
+/backend-node/src/modules/social/@animemultiflix/backend-team
+
+# History Module
+/backend-node/src/modules/history/@animemultiflix/backend-team
+
+# Shared Middleware - Security Critical
+/backend-node/src/shared/middleware/@animemultiflix/security-team
+/backend-node/src/shared/middleware/auth.middleware.ts @animemultiflix/security-team
+/backend-node/src/shared/middleware/admin.middleware.ts @animemultiflix/security-team
+/backend-node/src/shared/middleware/rate-limit.middleware.ts @animemultiflix/security-team
+
+# Shared Utils
+/backend-node/src/shared/utils/ @animemultiflix/backend-team
+/backend-node/src/shared/utils/encryption.ts @animemultiflix/security-team
+/backend-node/src/shared/utils/jwt.ts @animemultiflix/security-team
+
+# Shared Types
+/backend-node/src/shared/types/ @animemultiflix/backend-team
+
+# Shared Constants
+/backend-node/src/shared/constants/ @animemultiflix/backend-team
+
+# Shared Services
+/backend-node/src/shared/services/ @animemultiflix/backend-team
+
+# Sockets - Real-time Critical
+/backend-node/src/sockets/       @animemultiflix/webrtc-team
+/backend-node/src/sockets/voice.socket.ts @animemultiflix/webrtc-team
+/backend-node/src/sockets/chat.socket.ts @animemultiflix/node-team
+
+# Config Files
+/backend-node/package.json      @animemultiflix/node-team
+/backend-node/package-lock.json @animemultiflix/node-team
+/backend-node/tsconfig.json     @animemultiflix/node-team
+/backend-node/tsconfig.*.json   @animemultiflix/node-team
+/backend-node/nodemon.json      @animemultiflix/node-team
+/backend-node/.env              @animemultiflix/security-team
+/backend-node/.env.example      @animemultiflix/backend-team
+/backend-node/Dockerfile        @animemultiflix/devops-team
+
+# ============================================
+# BACKEND - PYTHON (Flask + AI/ML)
+# ============================================
+/backend-python/                @animemultiflix/python-team @animemultiflix/ml-team
+/backend-python/app.py          @animemultiflix/python-team
+/backend-python/wsgi.py         @animemultiflix/devops-team
+/backend-python/asgi.py         @animemultiflix/devops-team
+
+# API Layer
+/backend-python/api/            @animemultiflix/python-team
+/backend-python/api/v1/         @animemultiflix/python-team
+/backend-python/api/v1/anime_api.py @animemultiflix/python-team
+/backend-python/api/v1/admin_api.py @animemultiflix/admin-team
+/backend-python/api/v1/voice_api.py @animemultiflix/webrtc-team
+/backend-python/api/v1/recommendation_api.py @animemultiflix/ml-team
+
+# Services - AI/ML Critical
+/backend-python/services/       @animemultiflix/ml-team
+/backend-python/services/recommendation_service.py @animemultiflix/ml-team
+/backend-python/services/voice_processor.py @animemultiflix/webrtc-team
+/backend-python/services/audio_enhancer.py @animemultiflix/webrtc-team
+/backend-python/services/subtitle_generator.py @animemultiflix/ml-team
+/backend-python/services/translation_service.py @animemultiflix/ml-team
+/backend-python/services/speech_to_text.py @animemultiflix/ml-team
+
+# ML Models
+/backend-python/models/         @animemultiflix/ml-team
+/backend-python/models/*.pkl    @animemultiflix/ml-team
+/backend-python/models/*.h5     @animemultiflix/ml-team
+/backend-python/models/*.joblib @animemultiflix/ml-team
+
+# ML Training
+/backend-python/ml/             @animemultiflix/ml-team
+/backend-python/ml/train_models.py @animemultiflix/ml-team
+/backend-python/ml/hyperparameter_tuning.py @animemultiflix/ml-team
+
+# Workers
+/backend-python/workers/        @animemultiflix/python-team
+/backend-python/workers/video_worker.py @animemultiflix/performance-team
+
+# Middleware
+/backend-python/middleware/     @animemultiflix/security-team @animemultiflix/python-team
+/backend-python/middleware/auth_middleware.py @animemultiflix/security-team
+
+# Config
+/backend-python/config/         @animemultiflix/devops-team
+/backend-python/requirements.txt @animemultiflix/python-team
+/backend-python/requirements-*.txt @animemultiflix/python-team
+/backend-python/Dockerfile      @animemultiflix/devops-team
+
+# ============================================
+# BACKEND - GO (High Performance)
+# ============================================
+/backend-go/                    @animemultiflix/go-team @animemultiflix/performance-team
+/backend-go/main.go             @animemultiflix/go-team
+/backend-go/cmd/                @animemultiflix/go-team
+
+# Handlers
+/backend-go/internal/handlers/  @animemultiflix/go-team @animemultiflix/performance-team
+/backend-go/internal/handlers/voice.go @animemultiflix/webrtc-team
+/backend-go/internal/handlers/stream.go @animemultiflix/performance-team
+
+# Models
+/backend-go/internal/models/    @animemultiflix/go-team
+
+# Middleware
+/backend-go/internal/middleware/@animemultiflix/security-team
+
+# Services
+/backend-go/internal/services/  @animemultiflix/go-team
+/backend-go/internal/services/webrtc.go @animemultiflix/webrtc-team
+
+# Config
+/backend-go/go.mod              @animemultiflix/go-team
+/backend-go/go.sum              @animemultiflix/go-team
+/backend-go/Dockerfile          @animemultiflix/devops-team
+
+# ============================================
+# BACKEND - RUST (Ultra Fast)
+# ============================================
+/backend-rust/                  @animemultiflix/rust-team @animemultiflix/performance-team
+/backend-rust/src/main.rs       @animemultiflix/rust-team
+/backend-rust/src/lib.rs        @animemultiflix/rust-team
+
+# Handlers
+/backend-rust/src/handlers/     @animemultiflix/rust-team
+/backend-rust/src/handlers/voice.rs @animemultiflix/webrtc-team
+
+# Models
+/backend-rust/src/models/       @animemultiflix/rust-team
+
+# Services
+/backend-rust/src/services/     @animemultiflix/rust-team
+/backend-rust/src/services/webrtc.rs @animemultiflix/webrtc-team
+
+# Config
+/backend-rust/Cargo.toml        @animemultiflix/rust-team
+/backend-rust/Cargo.lock        @animemultiflix/rust-team
+/backend-rust/Dockerfile        @animemultiflix/devops-team
+
+# ============================================
+# FRONTEND (HTML/CSS/JS/TS)
+# ============================================
+/frontend/                      @animemultiflix/frontend-team
+/frontend/public/               @animemultiflix/frontend-team
+/frontend/public/index.html     @animemultiflix/frontend-team
+/frontend/public/*.html         @animemultiflix/frontend-team
+
+# CSS Styles
+/frontend/css/                  @animemultiflix/ui-team @animemultiflix/design-team
+/frontend/css/main.css          @animemultiflix/ui-team
+/frontend/css/admin.css         @animemultiflix/ui-team @animemultiflix/admin-team
+/frontend/css/dark-theme.css    @animemultiflix/ui-team
+/frontend/css/responsive.css    @animemultiflix/ui-team
+/frontend/css/animations.css    @animemultiflix/ui-team
+
+# JavaScript
+/frontend/js/                   @animemultiflix/frontend-team
+/frontend/js/app.js             @animemultiflix/frontend-team
+/frontend/js/auth.js            @animemultiflix/security-team
+/frontend/js/player.js          @animemultiflix/frontend-team
+/frontend/js/voice-chat.js      @animemultiflix/webrtc-team
+/frontend/js/admin.js           @animemultiflix/admin-team
+/frontend/js/webrtc.js          @animemultiflix/webrtc-team
+/frontend/js/socket.js          @animemultiflix/frontend-team
+/frontend/js/api.js             @animemultiflix/frontend-team
+
+# Assets
+/frontend/assets/               @animemultiflix/design-team
+/frontend/assets/images/        @animemultiflix/design-team
+/frontend/assets/icons/         @animemultiflix/design-team
+/frontend/assets/fonts/         @animemultiflix/design-team
+
+# Locales - i18n
+/frontend/locales/              @animemultiflix/i18n-team
+/frontend/locales/en/           @animemultiflix/i18n-team
+/frontend/locales/ja/           @animemultiflix/i18n-team
+/frontend/locales/es/           @animemultiflix/i18n-team
+
+# PWA
+/frontend/sw.js                 @animemultiflix/frontend-team @animemultiflix/performance-team
+/frontend/manifest.json         @animemultiflix/frontend-team
+
+# Config
+/frontend/package.json          @animemultiflix/frontend-team
+/frontend/package-lock.json     @animemultiflix/frontend-team
+
+# ============================================
+# MOBILE (React Native + Kotlin + Swift)
+# ============================================
+/mobile/                        @animemultiflix/mobile-team
+
+# Android - Kotlin
+/mobile/android/                @animemultiflix/android-team
+/mobile/android/app/            @animemultiflix/android-team
+/mobile/android/app/src/main/java/ @animemultiflix/android-team
+/mobile/android/app/src/main/kotlin/ @animemultiflix/android-team
+/mobile/android/build.gradle    @animemultiflix/android-team
+
+# iOS - Swift
+/mobile/ios/                    @animemultiflix/ios-team
+/mobile/ios/AnimeMultiFlix/     @animemultiflix/ios-team
+/mobile/ios/AnimeMultiFlix/AppDelegate.swift @animemultiflix/ios-team
+/mobile/ios/Podfile             @animemultiflix/ios-team
+
+# React Native Core
+/mobile/src/                    @animemultiflix/mobile-team
+/mobile/src/screens/            @animemultiflix/mobile-team
+/mobile/src/components/         @animemultiflix/mobile-team
+/mobile/src/navigation/         @animemultiflix/mobile-team
+/mobile/src/services/           @animemultiflix/mobile-team
+
+# Config
+/mobile/package.json            @animemultiflix/mobile-team
+/mobile/tsconfig.json           @animemultiflix/mobile-team
+/mobile/app.json                @animemultiflix/mobile-team
+
+# ============================================
+# DATABASE
+# ============================================
+/database/                      @animemultiflix/database-team
+
+# MongoDB
+/database/mongodb/              @animemultiflix/mongodb-team
+/database/mongodb/models/       @animemultiflix/mongodb-team
+/database/mongodb/models/User.js @animemultiflix/database-team
+/database/mongodb/models/Group.js @animemultiflix/database-team
+/database/mongodb/models/Message.js @animemultiflix/database-team
+/database/mongodb/migrations/   @animemultiflix/database-team
+/database/mongodb/seeds/        @animemultiflix/database-team
+
+# PostgreSQL
+/database/postgres/             @animemultiflix/postgres-team
+/database/postgres/init.sql     @animemultiflix/postgres-team
+/database/postgres/migrations/  @animemultiflix/postgres-team
+
+# Redis
+/database/redis/                @animemultiflix/redis-team
+/database/redis/cache.js        @animemultiflix/performance-team
+/database/redis/session.js      @animemultiflix/security-team
+
+# ============================================
+# DOCKER & KUBERNETES
+# ============================================
+/docker/                        @animemultiflix/devops-team
+/docker/Dockerfile.node         @animemultiflix/devops-team @animemultiflix/node-team
+/docker/Dockerfile.python       @animemultiflix/devops-team @animemultiflix/python-team
+/docker/Dockerfile.go           @animemultiflix/devops-team @animemultiflix/go-team
+/docker/Dockerfile.rust         @animemultiflix/devops-team @animemultiflix/rust-team
+/docker/Dockerfile.nginx        @animemultiflix/devops-team
+/docker/docker-compose.yml      @animemultiflix/devops-team
+/docker/docker-compose.*.yml    @animemultiflix/devops-team
+/docker/nginx.conf              @animemultiflix/devops-team
+/docker/entrypoint.sh           @animemultiflix/devops-team
+
+/kubernetes/                    @animemultiflix/devops-team
+/kubernetes/base/               @animemultiflix/devops-team
+/kubernetes/base/deployment.yaml @animemultiflix/devops-team
+/kubernetes/base/service.yaml   @animemultiflix/devops-team
+/kubernetes/base/ingress.yaml   @animemultiflix/devops-team
+/kubernetes/overlays/           @animemultiflix/devops-team
+/kubernetes/overlays/production/ @animemultiflix/sre-team
+/kubernetes/overlays/staging/   @animemultiflix/devops-team
+
+# ============================================
+# CI/CD & GITHUB
+# ============================================
+/.github/                       @animemultiflix/devops-team
+/.github/workflows/             @animemultiflix/devops-team
+/.github/workflows/01-deploy.yml @animemultiflix/devops-team
+/.github/workflows/02-test.yml  @animemultiflix/qa-team
+/.github/workflows/03-docker-build.yml @animemultiflix/devops-team
+/.github/workflows/04-security-scan.yml @animemultiflix/security-team
+/.github/workflows/05-backup.yml @animemultiflix/devops-team
+/.github/workflows/06-cd.yml    @animemultiflix/devops-team
+/.github/workflows/07-staging.yml @animemultiflix/devops-team
+/.github/workflows/08-production.yml @animemultiflix/sre-team
+/.github/workflows/09-rollback.yml @animemultiflix/sre-team
+/.github/CODEOWNERS             @animemultiflix/devops-team
+/.github/PULL_REQUEST_TEMPLATE.md @animemultiflix/docs-team
+/.github/ISSUE_TEMPLATE/        @animemultiflix/community-team
+/dependabot.yml                 @animemultiflix/devops-team
+
+# ============================================
+# DOCUMENTATION
+# ============================================
+/docs/                          @animemultiflix/docs-team
+/docs/API.md                    @animemultiflix/api-team
+/docs/DEPLOYMENT.md             @animemultiflix/devops-team
+/docs/ADMIN_GUIDE.md            @animemultiflix/admin-team
+/docs/USER_GUIDE.md             @animemultiflix/docs-team
+/*.md                           @animemultiflix/docs-team
+/README.md                      @animemultiflix/docs-team
+/CHANGELOG.md                   @animemultiflix/docs-team
+/ROADMAP.md                     @animemultiflix/product-team
+
+# ============================================
+# TESTS
+# ============================================
+/tests/                         @animemultiflix/qa-team
+/tests/unit/                    @animemultiflix/qa-team
+/tests/unit/auth.test.ts        @animemultiflix/security-team
+/tests/integration/             @animemultiflix/qa-team
+/tests/e2e/                     @animemultiflix/qa-team
+/tests/load/                    @animemultiflix/performance-team
+/tests/security/                @animemultiflix/security-team
+/tests/security/auth.test.js    @animemultiflix/security-team
+/tests/security/xss.test.js     @animemultiflix/security-team
+/tests/helpers/                 @animemultiflix/qa-team
+/jest.config.js                 @animemultiflix/qa-team
+/playwright.config.ts           @animemultiflix/qa-team
+
+# ============================================
+# SCRIPTS
+# ============================================
+/scripts/                       @animemultiflix/devops-team
+/scripts/setup.sh               @animemultiflix/devops-team
+/scripts/deploy.sh              @animemultiflix/devops-team
+/scripts/backup.sh              @animemultiflix/devops-team
+/scripts/create-admin.ts        @animemultiflix/admin-team
+/scripts/seed-data.js           @animemultiflix/database-team
+/scripts/train-models.py        @animemultiflix/ml-team
+
+# ============================================
+# MONITORING & LOGGING
+# ============================================
+/monitoring/                    @animemultiflix/devops-team
+/monitoring/prometheus/         @animemultiflix/devops-team
+/monitoring/prometheus/alerts.yml @animemultiflix/sre-team
+/monitoring/grafana/            @animemultiflix/devops-team
+/monitoring/grafana/dashboards/ @animemultiflix/sre-team
+/monitoring/elasticsearch/      @animemultiflix/devops-team
+/logs/                          @animemultiflix/devops-team
+
+# ============================================
+# SECURITY SENSITIVE FILES (High Priority)
+# ============================================
+/security/                      @animemultiflix/security-team
+/security/policy.md             @animemultiflix/security-team
+*.key                           @animemultiflix/security-team
+*.pem                           @animemultiflix/security-team
+*.crt                           @animemultiflix/security-team
+*.p12                           @animemultiflix/security-team
+secrets/                        @animemultiflix/security-team
+.ssl/                           @animemultiflix/security-team
+**/.env                         @animemultiflix/security-team
+**/.env.*                        @animemultiflix/security-team
+**/secrets*                     @animemultiflix/security-team
+**/*secret*                     @animemultiflix/security-team
+**/*credentials*                @animemultiflix/security-team
+**/*password*                   @animemultiflix/security-team
+**/*token*                      @animemultiflix/security-team
+**/*key*                        @animemultiflix/security-team
+
+# ============================================
+# PAYMENT & FINANCIAL (High Priority)
+# ============================================
+*/payment/                      @animemultiflix/payment-team @animemultiflix/finance-team
+*/payment/gateways/             @animemultiflix/payment-team @animemultiflix/security-team
+*/subscription/                 @animemultiflix/payment-team
+*/subscription/*.controller.ts  @animemultiflix/payment-team
+*/subscription/*.service.ts     @animemultiflix/payment-team
+/invoices/                      @animemultiflix/finance-team
+/invoices/*.pdf                 @animemultiflix/finance-team
+**/stripe*                      @animemultiflix/payment-team
+**/paypal*                      @animemultiflix/payment-team
+**/razorpay*                    @animemultiflix/payment-team
+
+# ============================================
+# VOICE & WEBRTC (Real-time Critical)
+# ============================================
+*/voice/                        @animemultiflix/webrtc-team
+*/voice/webrtc.service.ts       @animemultiflix/webrtc-team @animemultiflix/performance-team
+*/voice/room.manager.ts         @animemultiflix/webrtc-team
+*/sockets/voice.socket.ts       @animemultiflix/webrtc-team
+*/webrtc/                       @animemultiflix/webrtc-team
+/frontend/js/webrtc.js          @animemultiflix/webrtc-team
+/mobile/src/services/webrtc.ts  @animemultiflix/webrtc-team
+
+# ============================================
+# AI & ML MODELS
+# ============================================
+*/ml/                           @animemultiflix/ml-team
+*/ml/*.py                       @animemultiflix/ml-team
+*/models/*.pkl                  @animemultiflix/ml-team
+*/models/*.h5                   @animemultiflix/ml-team
+*/models/*.joblib               @animemultiflix/ml-team
+*/recommendation/               @animemultiflix/ml-team
+*/recommendation/*.py           @animemultiflix/ml-team
+
+# ============================================
+# CONTENT & MEDIA
+# ============================================
+/uploads/                       @animemultiflix/media-team
+/uploads/videos/                @animemultiflix/media-team
+/uploads/thumbnails/            @animemultiflix/media-team
+/uploads/subtitles/             @animemultiflix/media-team
+/uploads/audio/                 @animemultiflix/media-team
+/backend-node/src/modules/anime/ @animemultiflix/content-team
+/backend-node/src/modules/episode/ @animemultiflix/content-team
+
+# ============================================
+# USER DATA & PRIVACY (GDPR/CCPA)
+# ============================================
+/user-data/                     @animemultiflix/privacy-team @animemultiflix/security-team
+/privacy/                       @animemultiflix/legal-team
+/gdpr/                          @animemultiflix/legal-team
+/ccpa/                          @animemultiflix/legal-team
+**/privacy*                     @animemultiflix/legal-team
+**/gdpr*                        @animemultiflix/legal-team
+**/user-data*                   @animemultiflix/privacy-team
+
+# ============================================
+# THIRD-PARTY INTEGRATIONS
+# ============================================
+/integrations/                  @animemultiflix/integrations-team
+/integrations/mal/              @animemultiflix/integrations-team
+/integrations/anilist/          @animemultiflix/integrations-team
+/integrations/discord/          @animemultiflix/integrations-team
+/integrations/twitter/          @animemultiflix/integrations-team
+/integrations/facebook/         @animemultiflix/integrations-team
+/integrations/google/           @animemultiflix/integrations-team
+
+# ============================================
+# PERFORMANCE CRITICAL PATHS
+# ============================================
+/backend-go/internal/handlers/stream.go @animemultiflix/performance-team @animemultiflix/go-team
+/backend-rust/src/handlers/stream.rs @animemultiflix/performance-team @animemultiflix/rust-team
+/backend-node/src/modules/streaming/ @animemultiflix/performance-team
+/backend-node/src/modules/streaming/hls.service.ts @animemultiflix/performance-team
+/database/redis/cache.js        @animemultiflix/performance-team
+/frontend/js/player.js          @animemultiflix/performance-team
+
+# ============================================
+# PRODUCTION ONLY PATHS
+# ============================================
+/production/                    @animemultiflix/sre-team
+/production/config/             @animemultiflix/sre-team
+/production/secrets/            @animemultiflix/security-team
+/production/backups/            @animemultiflix/sre-team
+
+# ============================================
+# DEVELOPMENT TOOLS
+# ============================================
+/.vscode/                       @animemultiflix/backend-team
+/.idea/                         @animemultiflix/backend-team
+/.prettierrc                    @animemultiflix/backend-team
+/.prettierignore                @animemultiflix/backend-team
+/.eslintrc.js                   @animemultiflix/backend-team
+/.eslintrc.prod.js              @animemultiflix/backend-team
+/.eslintignore                  @animemultiflix/backend-team
+/.editorconfig                  @animemultiflix/backend-team
+/.nvmrc                         @animemultiflix/backend-team
+/.node-version                  @animemultiflix/backend-team
+/.npmrc                         @animemultiflix/backend-team
+/.yarnrc                        @animemultiflix/backend-team
+/.tool-versions                 @animemultiflix/backend-team
+
+# ============================================
+# BUILD & DEPLOYMENT (Infrastructure)
+# ============================================
+/terraform/                     @animemultiflix/infra-team
+/terraform/main.tf              @animemultiflix/infra-team
+/terraform/variables.tf         @animemultiflix/infra-team
+/terraform/outputs.tf           @animemultiflix/infra-team
+/ansible/                       @animemultiflix/devops-team
+/ansible/playbooks/             @animemultiflix/devops-team
+/packer/                        @animemultiflix/devops-team
+/packer/templates/              @animemultiflix/devops-team
+
+# ============================================
+# EMERGENCY ACCESS (On-call Engineers)
+# ============================================
+# On-call engineers have admin access to all paths
+# This is managed via GitHub teams: @animemultiflix/on-call
+* @animemultiflix/on-call
+
+# ============================================
+# REVIEW REQUIREMENTS
+# ============================================
+# Required number of approving reviews:
+# - 2 reviews for backend changes
+# - 2 reviews for security changes
+# - 1 review for documentation
+# - 3 reviews for production changes
+# - 4 reviews for payment changes
