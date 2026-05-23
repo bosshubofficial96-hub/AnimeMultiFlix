@@ -1,0 +1,70 @@
+# AnimeMultiFlix - Rollback Workflow
+# Version: 4.0.0 (2026)
+
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to rollback to'
+        required: true
+        type: string
+      reason:
+        description: 'Reason for rollback'
+        required: true
+        type: string
+
+jobs:
+  rollback:
+    name: Rollback to Previous Version
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Rollback ECS Service
+        run: |
+          aws ecs update-service --cluster animemultiflix-prod --service animemultiflix-node --task-definition animemultiflix-node:${{ github.event.inputs.version }}
+          aws ecs wait services-stable --cluster animemultiflix-prod --services animemultiflix-node
+      
+      - name: Rollback Kubernetes
+        run: |
+          kubectl rollout undo deployment/animemultiflix-node -n production --to-revision=${{ github.event.inputs.version }}
+          kubectl rollout status deployment/animemultiflix-node -n production --timeout=10m
+      
+      - name: Verify Rollback
+        run: |
+          sleep 30
+          curl -f https://animemultiflix.me/health || exit 1
+      
+      - name: Send Rollback Notification
+        uses: slackapi/slack-github-action@v1.24
+        with:
+          payload: |
+            {
+              "text": "⚠️ Rollback completed!\nRolled back to version: ${{ github.event.inputs.version }}\nReason: ${{ github.event.inputs.reason }}\nInitiator: ${{ github.actor }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_ALERT_WEBHOOK }}
+      
+      - name: Create Rollback Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ Rollback performed',
+              body: 'A rollback was performed to version ${{ github.event.inputs.version }}\nReason: ${{ github.event.inputs.reason }}\nInitiator: ${{ github.actor }}',
+              labels: ['rollback', 'incident']
+            })
