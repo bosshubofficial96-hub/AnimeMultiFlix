@@ -1,0 +1,72 @@
+{
+  "app": {
+    "name": "AnimeMultiFlix",
+    "environment": "production",
+    "debug": false,
+    "port": 3000,
+    "host": "0.0.0.0",
+    "apiUrl": "http://localhost:3000/api",
+    "frontendUrl": "http://localhost:3000",
+    "adminUrl": "http://localhost:3000/admin",
+    "wsUrl": "ws://localhost:3001"
+  },
+  "database": {
+    "mongodb": {
+      "uri": "mongodb://mongodb:27017/anime_multiflix",
+      "poolSize": 10
+    },
+    "redis": {
+      "enabled": true,
+      "host": "redis",
+      "port": 6379,
+      "db": 0,
+      "ttl": 3600
+    },
+    "postgresql": {
+      "enabled": true,
+      "host": "postgres",
+      "port": 5432,
+      "database": "anime_multiflix",
+      "user": "postgres",
+      "password": "${POSTGRES_PASSWORD}"
+    }
+  },
+  "security": {
+    "ssl": false,
+    "rateLimit": {
+      "enabled": true,
+      "max": 100
+    },
+    "csrf": {
+      "enabled": true
+    }
+  },
+  "logging": {
+    "level": "INFO",
+    "console": true,
+    "file": true,
+    "path": "/app/logs"
+  },
+  "cache": {
+    "type": "redis",
+    "ttl": 3600
+  },
+  "features": {
+    "voiceChat": true,
+    "watchParty": true,
+    "groups": true,
+    "premium": true
+  },
+  "email": {
+    "enabled": true,
+    "backend": "smtp"
+  },
+  "payment": {
+    "enabled": true,
+    "testMode": false
+  },
+  "storage": {
+    "type": "local",
+    "path": "/app/uploads"
+  }
+}
