@@ -1,0 +1,99 @@
+{
+  "app": {
+    "name": "AnimeMultiFlix",
+    "environment": "production",
+    "debug": false,
+    "port": 8080,
+    "host": "0.0.0.0",
+    "apiUrl": "https://api.animemultiflix.me/api",
+    "frontendUrl": "https://animemultiflix.me",
+    "adminUrl": "https://admin.animemultiflix.me",
+    "wsUrl": "wss://ws.animemultiflix.me"
+  },
+  "database": {
+    "mongodb": {
+      "uri": "mongodb://prod-cluster:27017/anime_multiflix_prod",
+      "poolSize": 20,
+      "ssl": true
+    },
+    "redis": {
+      "enabled": true,
+      "host": "redis-cluster",
+      "port": 6379,
+      "db": 0,
+      "ttl": 3600,
+      "password": "${REDIS_PASSWORD}"
+    },
+    "postgresql": {
+      "enabled": true,
+      "host": "postgres-cluster",
+      "port": 5432,
+      "database": "anime_multiflix_prod",
+      "poolSize": 20,
+      "ssl": true
+    }
+  },
+  "security": {
+    "ssl": true,
+    "rateLimit": {
+      "enabled": true,
+      "max": 60
+    },
+    "csrf": {
+      "enabled": true
+    },
+    "cors": {
+      "origins": [
+        "https://animemultiflix.me",
+        "https://api.animemultiflix.me",
+        "https://admin.animemultiflix.me"
+      ]
+    }
+  },
+  "logging": {
+    "level": "WARNING",
+    "console": false,
+    "file": true,
+    "path": "/var/log/animemultiflix",
+    "maxBytes": 104857600,
+    "backupCount": 30
+  },
+  "cache": {
+    "type": "redis",
+    "ttl": 3600
+  },
+  "features": {
+    "voiceChat": true,
+    "watchParty": true,
+    "groups": true,
+    "premium": true,
+    "analytics": true,
+    "notifications": true
+  },
+  "email": {
+    "enabled": true,
+    "backend": "smtp"
+  },
+  "payment": {
+    "enabled": true,
+    "testMode": false,
+    "stripe": true,
+    "paypal": true
+  },
+  "cdn": {
+    "enabled": true,
+    "url": "https://cdn.animemultiflix.me",
+    "provider": "cloudflare"
+  },
+  "monitoring": {
+    "enabled": true,
+    "sentry": true,
+    "newRelic": true
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retention": 30,
+    "storage": "s3"
+  }
+}
