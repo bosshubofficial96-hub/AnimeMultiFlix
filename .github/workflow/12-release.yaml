@@ -1,0 +1,75 @@
+# AnimeMultiFlix - Release Workflow
+# Version: 4.0.0 (2026)
+
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate Changelog
+        uses: orhun/git-cliff-action@v2
+        with:
+          config: cliff.toml
+          args: --verbose
+        env:
+          OUTPUT: CHANGELOG.md
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+          files: |
+            CHANGELOG.md
+            LICENSE
+            README.md
+          generate_release_notes: true
+      
+      - name: Build Release Artifacts
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/animemultiflix-source.tar.gz --exclude=node_modules --exclude=target .
+          cp docker-compose.yml artifacts/
+          cp kubernetes/overlays/production/*.yaml artifacts/
+      
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/animemultiflix-source.tar.gz
+          asset_name: animemultiflix-source.tar.gz
+          asset_content_type: application/gzip
+      
+      - name: Send Release Notification
+        uses: slackapi/slack-github-action@v1.24
+        with:
+          payload: |
+            {
+              "text": "📦 New release published!\nVersion: ${{ github.ref_name }}\nURL: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}\nChangelog: https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_WEBHOOK }}
