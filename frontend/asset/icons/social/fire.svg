@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+  <path d="M12 2c-.5 2-1.5 4-2 6-1-2-2-4-4-4-2 2-3 5-3 8 0 4 3 8 7 8s7-4 7-8c0-4-3-8-7-8z">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="1s" repeatCount="indefinite"/>
+  </path>
+</svg>
